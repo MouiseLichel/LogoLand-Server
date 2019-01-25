@@ -1,4 +1,9 @@
 django
 djangorestframework
+django-filter
 six
 Pillow
+opencv-python
+sklearn
+scipy
+markdown
