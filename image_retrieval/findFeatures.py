@@ -1,19 +1,18 @@
-import argparse as ap
+from rest_framework import settings
 import cv2
 import numpy as np
 import os
 from sklearn.externals import joblib
 from scipy.cluster.vq import *
-
 from sklearn import preprocessing
-from rootsift import RootSIFT
-import math
 
 
 TRAIN_PATH = "path/to/training/dataset"
 NUM_WORDS = 1000
 
-training_names = os.listdir(TRAIN_PATH)
+training_names = os.listdir(settings.MEDIA_ROOT)
+print(training_names)
+exit()
 
 # Get all the path to the images and save them in a list
 # image_paths and the corresponding label in image_paths

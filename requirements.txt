@@ -3,7 +3,8 @@ djangorestframework
 django-filter
 six
 Pillow
-opencv-python
+opencv-python==4.0.0.21
 sklearn
 scipy
 markdown
+requests
