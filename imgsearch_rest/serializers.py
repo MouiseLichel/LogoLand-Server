@@ -2,7 +2,7 @@ from rest_framework import serializers
 from imgsearch.models import ImageSearch
 from media.models import Image
 from .custom_fields import Base64ImageField
-#from image_retrieval.search import Engine
+from media.search import search
 
 class ImgSearchSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
@@ -20,7 +20,7 @@ class ImgSearchSerializer(serializers.ModelSerializer):
         Create and return a new `ImageSearch` instance, given the validated data.
         """
         client = self.context
-        #results = Engine.search(validated_data['image'])
+        results = search(validated_data['image'])
         return ImageSearch.objects.create(
             client=client,
         #    results=results
