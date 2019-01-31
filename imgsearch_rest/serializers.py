@@ -1,14 +1,20 @@
 from rest_framework import serializers
 from imgsearch.models import ImageSearch
-from media.models import Image
-from .custom_fields import Base64ImageField
 from media.search import search
+from drf_extra_fields.fields import Base64ImageField
+import base64
+from PIL import Image
+import io
+import numpy
+import cv2
+from utils.ImageUtils import base64ToOpenCV
+
 
 class ImgSearchSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     date = serializers.DateTimeField(read_only=True)
-    client = serializers.CharField(required=False)
-    image = Base64ImageField(max_length=None)
+    client = serializers.CharField(read_only=True)
+    image = serializers.CharField(max_length=None)
     results = serializers.CharField(read_only=True)
 
     class Meta:
@@ -19,23 +25,31 @@ class ImgSearchSerializer(serializers.ModelSerializer):
         """
         Create and return a new `ImageSearch` instance, given the validated data.
         """
+        # Save User-Agent
         client = self.context
-        results = search(validated_data['image'])
+
+        # Get results
+        base64_image = validated_data.pop('image')
+        opencv_image = base64ToOpenCV(base64_image)
+        results = search(opencv_image)
+
+        # Create new 'ImageSearch'
         return ImageSearch.objects.create(
             client=client,
-        #    results=results
+            results=results
         )
 
     def to_representation(self, obj):
         # get the original representation
         ret = super(ImgSearchSerializer, self).to_representation(obj)
 
-        # remove 'url' field if mobile request
+        # remove 'image' field if mobile request
         ret.pop('image')
 
         return ret
 
+
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ('pk','image')
+        fields = ('pk', 'image')

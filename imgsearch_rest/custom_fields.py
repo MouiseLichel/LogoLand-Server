@@ -9,7 +9,7 @@ import imghdr
 class Base64ImageField(serializers.ImageField):
 
     def to_internal_value(self, data):
-
+        print("to_internal_value")
         # Check if this is a base64 string
         if isinstance(data, six.string_types):
             # Check if the base64 string is in the "data:" format
@@ -35,7 +35,7 @@ class Base64ImageField(serializers.ImageField):
         return super(Base64ImageField, self).to_internal_value(data)
 
     def get_file_extension(self, file_name, decoded_file):
-
+        print("get_file_extension")
         extension = imghdr.what(file_name, decoded_file)
         extension = "jpg" if extension == "jpeg" else extension
 

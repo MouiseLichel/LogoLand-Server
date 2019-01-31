@@ -3,8 +3,12 @@ djangorestframework
 django-filter
 six
 Pillow
-opencv-python==4.0.0.21
+opencv-python==3.4.2.16
+opencv-contrib-python==3.4.2.16
 sklearn
 scipy
 markdown
 requests
+numpy
+matplotlib
+django-extra-fields
