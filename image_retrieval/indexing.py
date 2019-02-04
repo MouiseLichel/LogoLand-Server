@@ -1,20 +1,15 @@
-from rest_framework.settings import settings
+import os
 
-import argparse as ap
 import cv2
 import numpy as np
-import os
-from sklearn.externals import joblib
+from rest_framework.settings import settings
 from scipy.cluster.vq import *
-
 from sklearn import preprocessing
-import math
-import ntpath
+from sklearn.externals import joblib
 
 # Get the training classes names and store them in a list
-train_path = "dataset/"
+train_path = settings.TRAIN_PATH
 DICTIONARY = settings.DICTIONARY_PATH
-
 
 training_names = os.listdir(train_path)
 
@@ -27,10 +22,6 @@ for training_name in training_names:
     image_path = os.path.join(train_path, training_name)
     image_paths += [image_path]
 
-# Create feature extraction and keypoint detector objects
-# fea_det = cv2.FeatureDetector_create("SIFT")
-# des_ext = cv2.DescriptorExtractor_create("SIFT")
-
 # List where all the descriptors are stored
 des_list = []
 sift = cv2.xfeatures2d.SIFT_create()
@@ -41,12 +32,6 @@ for i, image_path in enumerate(image_paths):
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     kp, des = sift.detectAndCompute(gray, None)
     des_list.append((image_path, des))
-
-# Stack all the descriptors vertically in a numpy array
-# downsampling = 1
-# descriptors = des_list[0][1][::downsampling,:]
-# for image_path, descriptor in des_list[1:]:
-#    descriptors = np.vstack((descriptors, descriptor[::downsampling,:]))
 
 # Stack all the descriptors vertically in a numpy array
 descriptors = des_list[0][1]

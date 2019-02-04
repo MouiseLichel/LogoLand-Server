@@ -1,73 +1,50 @@
-import argparse as ap
 import cv2
-import imutils
-import numpy as np
-import os
-from sklearn.externals import joblib
-from scipy.cluster.vq import *
-
-from sklearn import preprocessing
-import numpy as np
-
 from pylab import *
-from PIL import Image
-from rootsift import RootSIFT
+from rest_framework.settings import settings
+from scipy.cluster.vq import *
+from sklearn import preprocessing
+from sklearn.externals import joblib
 
-# Get the path of the training set
-parser = ap.ArgumentParser()
-parser.add_argument("-i", "--image", help="Path to query image", required="True")
-args = vars(parser.parse_args())
+DICTIONARY = settings.DICTIONARY_PATH
+
 
 # Get query image path
-image_path = args["image"]
+def search(opencv_image):
+    # Load the classifier, class names, scaler, number of clusters and vocabulary
+    im_features, image_paths, idf, numWords, voc = joblib.load(DICTIONARY)
 
-# Load the classifier, class names, scaler, number of clusters and vocabulary 
-im_features, image_paths, idf, numWords, voc = joblib.load("bof.pkl")
+    # Create feature extraction and keypoint detector objects
+    # List where all the descriptors are stored
+    des_list = []
+    sift = cv2.xfeatures2d.SIFT_create()
 
-# Create feature extraction and keypoint detector objects
-fea_det = cv2.FeatureDetector_create("SIFT")
-des_ext = cv2.DescriptorExtractor_create("SIFT")
+    gray = cv2.cvtColor(opencv_image, cv2.COLOR_BGR2GRAY)
+    kp, des = sift.detectAndCompute(opencv_image, None)
 
-# List where all the descriptors are stored
-des_list = []
+    des_list.append(("image_path", des))
 
-im = cv2.imread(image_path)
-kpts = fea_det.detect(im)
-kpts, des = des_ext.compute(im, kpts)
+    # Stack all the descriptors vertically in a numpy array
+    descriptors = des_list[0][1]
 
-# rootsift
-# rs = RootSIFT()
-# des = rs.compute(kpts, des)
+    #
+    test_features = np.zeros((1, numWords), "float32")
+    words, distance = vq(descriptors, voc)
+    for w in words:
+        test_features[0][w] += 1
 
-des_list.append((image_path, des))
+    # Perform Tf-Idf vectorization and L2 normalization
+    test_features = test_features * idf
+    test_features = preprocessing.normalize(test_features, norm='l2')
 
-# Stack all the descriptors vertically in a numpy array
-descriptors = des_list[0][1]
+    score = np.dot(test_features, im_features.T)
+    rank_ID = np.argsort(-score)
 
-# 
-test_features = np.zeros((1, numWords), "float32")
-words, distance = vq(descriptors, voc)
-for w in words:
-    test_features[0][w] += 1
+    image_urls = [settings.MEDIA_URL + image_name for image_name in image_paths]
 
-# Perform Tf-Idf vectorization and L2 normalization
-test_features = test_features * idf
-test_features = preprocessing.normalize(test_features, norm='l2')
+    results = []
 
-score = np.dot(test_features, im_features.T)
-rank_ID = np.argsort(-score)
+    for i, ID in enumerate(rank_ID[0][0:16]):
+        print("img_name:%s, score:%s"%(image_paths[ID],score[0][ID]))
+        results.append({'image_url': image_urls[ID], 'score': score[0][ID]})
 
-# Visualize the results
-figure()
-gray()
-subplot(5, 4, 1)
-imshow(im[:, :, ::-1])
-axis('off')
-for i, ID in enumerate(rank_ID[0][0:16]):
-    img = Image.open(image_paths[ID])
-    gray()
-    subplot(5, 4, i + 5)
-    imshow(img)
-    axis('off')
-
-show() 
+    return results

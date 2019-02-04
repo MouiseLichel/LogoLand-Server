@@ -36,10 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'backend_app',
     'imgsearch_rest',
-    'imgsearch',
-    'media'
+    'imgsearch'
 ]
 
 MIDDLEWARE = [

@@ -1,12 +1,7 @@
 from rest_framework import serializers
+
+from image_retrieval.search import search
 from imgsearch.models import ImageSearch
-from media.search import search
-from drf_extra_fields.fields import Base64ImageField
-import base64
-from PIL import Image
-import io
-import numpy
-import cv2
 from utils.ImageUtils import base64ToOpenCV
 
 
@@ -34,8 +29,9 @@ class ImgSearchSerializer(serializers.ModelSerializer):
         opencv_image = base64ToOpenCV(base64_image)
         results = search(opencv_image)
 
+        # Form image urls
         for result in results:
-            result['image_url'] = base_url+ result['image_url']
+            result['image_url'] = base_url + result['image_url']
 
         # Create new 'ImageSearch'
         return ImageSearch.objects.create(
@@ -47,13 +43,7 @@ class ImgSearchSerializer(serializers.ModelSerializer):
         # get the original representation
         ret = super(ImgSearchSerializer, self).to_representation(obj)
 
-        # remove 'image' field if mobile request
+        # remove 'image' field
         ret.pop('image')
 
         return ret
-
-
-class ImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Image
-        fields = ('pk', 'image')
