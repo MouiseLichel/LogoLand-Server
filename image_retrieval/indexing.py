@@ -1,15 +1,26 @@
 import os
-
+import argparse as ap
 import cv2
 import numpy as np
 from rest_framework.settings import settings
 from scipy.cluster.vq import *
 from sklearn import preprocessing
 from sklearn.externals import joblib
+from django.core import exceptions
 
-# Get the training classes names and store them in a list
-train_path = settings.TRAIN_PATH
-DICTIONARY = settings.DICTIONARY_PATH
+# Get training dataset path and dictionary
+try:
+    train_path = settings.TRAIN_PATH
+    dictionary = settings.DICTIONARY_PATH
+except exceptions.ImproperlyConfigured:
+    parser = ap.ArgumentParser()
+    parser.add_argument("-t", "--trainingSet", help="Path to Training Set", required="True")
+    parser.add_argument("-d", "--dictionary", help="Path to Dictionary", required="True")
+    args = vars(parser.parse_args())
+
+    # Get the training classes names and store them in a list
+    train_path = args["trainingSet"]
+    dictionary = args["dictionary"]
 
 training_names = os.listdir(train_path)
 
@@ -57,4 +68,4 @@ idf = np.array(np.log((1.0 * len(image_paths) + 1) / (1.0 * nbr_occurences + 1))
 im_features = im_features * idf
 im_features = preprocessing.normalize(im_features, norm='l2')
 
-joblib.dump((im_features, training_names, idf, numWords, voc), settings.DICTIONARY, compress=3)
+joblib.dump((im_features, training_names, idf, numWords, voc), dictionary, compress=3)

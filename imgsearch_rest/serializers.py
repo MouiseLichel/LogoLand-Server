@@ -1,16 +1,25 @@
 from rest_framework import serializers
 
 from image_retrieval.search import search
-from imgsearch.models import ImageSearch
+from imgsearch.models import ImageSearch, Result
 from utils.ImageUtils import base64ToOpenCV
+
+
+class ResultSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    image_url = serializers.URLField()
+    score = serializers.FloatField()
+
+    class Meta:
+        model = Result
+        fields = ['id', 'image_url', 'score', ]
 
 
 class ImgSearchSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     date = serializers.DateTimeField(read_only=True)
     client = serializers.CharField(read_only=True)
-    image = serializers.CharField(max_length=None)
-    results = serializers.CharField(read_only=True)
+    results = ResultSerializer(many=True, read_only=True)
 
     class Meta:
         model = ImageSearch
@@ -31,7 +40,7 @@ class ImgSearchSerializer(serializers.ModelSerializer):
 
         # Form image urls
         for result in results:
-            result['image_url'] = base_url + result['image_url']
+            Result(image_url=base_url + result['image_url'], score=result['score'])
 
         # Create new 'ImageSearch'
         return ImageSearch.objects.create(
@@ -39,11 +48,12 @@ class ImgSearchSerializer(serializers.ModelSerializer):
             results=results
         )
 
-    def to_representation(self, obj):
-        # get the original representation
-        ret = super(ImgSearchSerializer, self).to_representation(obj)
 
-        # remove 'image' field
-        ret.pop('image')
+def to_representation(self, obj):
+    # get the original representation
+    ret = super(ImgSearchSerializer, self).to_representation(obj)
 
-        return ret
+    # remove 'image' field
+    ret.pop('image')
+
+    return ret

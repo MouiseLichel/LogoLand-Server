@@ -3,8 +3,10 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from imgsearch.models import ImageSearch
+from image_retrieval.search import search
+from imgsearch.models import ImageSearch, Result
 from imgsearch_rest.serializers import ImgSearchSerializer
+from utils.ImageUtils import base64ToOpenCV
 
 
 class ImgSearchList(APIView):
@@ -15,20 +17,34 @@ class ImgSearchList(APIView):
         # Get Base URL
         base_url = request.build_absolute_uri('/')
 
-        # Serialize the data
-        serializer = ImgSearchSerializer(data=request.data, context={'client': client, 'base_url': base_url})
-        if serializer.is_valid():
-            obj = serializer.save()
-            response = Response(status=status.HTTP_201_CREATED)
+        # Get Image
+        image = base64ToOpenCV(request.data['image'])
+        results = search(image)
 
-            # Add 'Location' header
-            response['Location'] = request.build_absolute_uri(str(obj.id))
+        image_search = ImageSearch(client=client)
+        image_search.save()
 
-            return response
+        for r in results:
+            result = Result(image_url=base_url + r['image_url'], score=r['score'], image_search=image_search)
+            result.save()
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        response = Response(status=status.HTTP_201_CREATED)
+        # Add 'Location' header
+        response['Location'] = request.build_absolute_uri(str(image_search.id))
+
+        return response
+
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ImgSearchDetail(generics.RetrieveAPIView):
+    # get search ID
+    # get all results with the ID
+
     queryset = ImageSearch.objects.all()
     serializer_class = ImgSearchSerializer
+
+    def get(self, request, pk, format=None):
+        image_search = ImageSearch.objects.get(pk=pk)
+        serializer = ImgSearchSerializer(image_search)
+        return Response(serializer.data)

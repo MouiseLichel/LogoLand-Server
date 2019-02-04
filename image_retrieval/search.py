@@ -44,7 +44,6 @@ def search(opencv_image):
     results = []
 
     for i, ID in enumerate(rank_ID[0][0:16]):
-        print("img_name:%s, score:%s"%(image_paths[ID],score[0][ID]))
         results.append({'image_url': image_urls[ID], 'score': score[0][ID]})
 
     return results
