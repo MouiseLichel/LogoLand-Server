@@ -1,3 +1,5 @@
+from rest_framework.settings import settings
+
 import argparse as ap
 import cv2
 import numpy as np
@@ -11,6 +13,8 @@ import ntpath
 
 # Get the training classes names and store them in a list
 train_path = "dataset/"
+DICTIONARY = settings.DICTIONARY_PATH
+
 
 training_names = os.listdir(train_path)
 
@@ -68,4 +72,4 @@ idf = np.array(np.log((1.0 * len(image_paths) + 1) / (1.0 * nbr_occurences + 1))
 im_features = im_features * idf
 im_features = preprocessing.normalize(im_features, norm='l2')
 
-joblib.dump((im_features, training_names, idf, numWords, voc), "bof_retr.pkl", compress=3)
+joblib.dump((im_features, training_names, idf, numWords, voc), settings.DICTIONARY, compress=3)

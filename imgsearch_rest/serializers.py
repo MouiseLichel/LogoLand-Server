@@ -26,12 +26,16 @@ class ImgSearchSerializer(serializers.ModelSerializer):
         Create and return a new `ImageSearch` instance, given the validated data.
         """
         # Save User-Agent
-        client = self.context
+        client = self.context['client']
+        base_url = self.context['base_url']
 
         # Get results
         base64_image = validated_data.pop('image')
         opencv_image = base64ToOpenCV(base64_image)
         results = search(opencv_image)
+
+        for result in results:
+            result['image_url'] = base_url+ result['image_url']
 
         # Create new 'ImageSearch'
         return ImageSearch.objects.create(

@@ -6,8 +6,9 @@ from imgsearch.models import ImageSearch
 from imgsearch_rest.serializers import ImageSerializer, ImgSearchSerializer
 from rest_framework.response import Response
 from rest_framework import status
-
 from rest_framework.views import APIView
+from rest_framework.settings import settings
+
 
 # Create your views here.
 class ImageList(generics.ListCreateAPIView):
@@ -25,10 +26,14 @@ class ImgSearchList(APIView):
 
     def post(self, request, format=None):
         client = request.META.get('HTTP_USER_AGENT')
-        serializer = ImgSearchSerializer(data=request.data, context=client)
+        base_url = request.build_absolute_uri('/')
+        print(base_url)
+        serializer = ImgSearchSerializer(data=request.data, context={'client':client,'base_url':base_url})
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            obj = serializer.save()
+            response = Response(serializer.data, status=status.HTTP_201_CREATED)
+            response['Location'] = request.build_absolute_uri(str(obj.id))
+            return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         print("errors:%s" % serializer.errors)
 

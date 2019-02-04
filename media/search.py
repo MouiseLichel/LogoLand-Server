@@ -1,3 +1,4 @@
+from rest_framework.settings import settings
 import argparse as ap
 import cv2
 import numpy as np
@@ -11,14 +12,14 @@ import numpy as np
 from pylab import *
 from PIL import Image
 
-DICTIONARY = "/bof_retr.pkl"
+DICTIONARY = settings.DICTIONARY_PATH
 
 
 # Get query image path
 ##image_path = '../dataset/ukbench00000.jpg'
 def search(opencv_image):
     # Load the classifier, class names, scaler, number of clusters and vocabulary
-    im_features, image_paths, idf, numWords, voc = joblib.load(os.path.dirname(os.path.realpath(__file__)) + DICTIONARY)
+    im_features, image_paths, idf, numWords, voc = joblib.load(DICTIONARY)
 
     # Create feature extraction and keypoint detector objects
     # List where all the descriptors are stored
@@ -46,7 +47,7 @@ def search(opencv_image):
     score = np.dot(test_features, im_features.T)
     rank_ID = np.argsort(-score)
 
-    image_urls = ['http://127.0.0.1:8000/media/' + image_name for image_name in image_paths]
+    image_urls = [settings.MEDIA_URL + image_name for image_name in image_paths]
 
     results = []
 

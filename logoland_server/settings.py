@@ -118,5 +118,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, '', 'dataset')
-MEDIA_URL = '/media/'
+# URLs
+IMAGE_SEARCH = 'img_searches/'
+
+# Image retrieval
+DICTIONARY_PATH = os.path.join(BASE_DIR, 'image_retrieval', 'bof_retr.pkl')
+TRAIN_PATH = os.path.join(BASE_DIR, '', 'dataset')
+# Images
+MEDIA_ROOT = TRAIN_PATH
+MEDIA_URL = 'images/'
