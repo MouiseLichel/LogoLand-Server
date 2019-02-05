@@ -30,7 +30,7 @@ class ImgSearchList(APIView):
 
         response = Response(status=status.HTTP_201_CREATED)
         # Add 'Location' header
-        response['Location'] = request.build_absolute_uri(str(image_search.id))
+        response['Location'] = request.build_absolute_uri(str(image_search.id)+'/')
 
         return response
 
