@@ -1,4 +1,4 @@
-from rest_framework import generics
+from django.http import Http404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -37,14 +37,33 @@ class ImgSearchList(APIView):
         # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ImgSearchDetail(generics.RetrieveAPIView):
-    # get search ID
-    # get all results with the ID
+class ImgSearchDetail(APIView):
+    """
+    Retrieve or update a ImageSearch instance.
+    """
 
-    queryset = ImageSearch.objects.all()
-    serializer_class = ImgSearchSerializer
+    def get_object(self, pk):
+        try:
+            return ImageSearch.objects.get(pk=pk)
+        except ImageSearch.DoesNotExist:
+            raise Http404
 
     def get(self, request, pk, format=None):
-        image_search = ImageSearch.objects.get(pk=pk)
+        image_search = self.get_object(pk)
+        serializer = ImgSearchSerializer(image_search)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        image_search = self.get_object(pk)
+        validated_urls = request.data['validated_urls']
+        results = Result.objects.filter(image_search=image_search)
+        for result in results:
+            if result.image_url in validated_urls:
+                result.positive_feedback = True
+            else:
+                result.positive_feedback = False
+            result.save()
+
+        image_search = self.get_object(pk)
         serializer = ImgSearchSerializer(image_search)
         return Response(serializer.data)

@@ -9,10 +9,20 @@ class ResultSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     image_url = serializers.URLField()
     score = serializers.FloatField()
+    positive_feedback = serializers.NullBooleanField(required=False)
 
     class Meta:
         model = Result
-        fields = ['id', 'image_url', 'score', ]
+        fields = ['id','image_url', 'score','positive_feedback' ]
+
+    def to_representation(self, obj):
+        # get the original representation
+        ret = super(ResultSerializer, self).to_representation(obj)
+
+        # remove 'id' field
+        ret.pop('id')
+
+        return ret
 
 
 class ImgSearchSerializer(serializers.ModelSerializer):
@@ -47,13 +57,3 @@ class ImgSearchSerializer(serializers.ModelSerializer):
             client=client,
             results=results
         )
-
-
-def to_representation(self, obj):
-    # get the original representation
-    ret = super(ImgSearchSerializer, self).to_representation(obj)
-
-    # remove 'image' field
-    ret.pop('image')
-
-    return ret
