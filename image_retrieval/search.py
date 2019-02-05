@@ -43,7 +43,7 @@ def search(opencv_image):
 
     results = []
 
-    for i, ID in enumerate(rank_ID[0][0:16]):
+    for i, ID in enumerate(rank_ID[0][0:5]):
         results.append({'image_url': image_urls[ID], 'score': score[0][ID]})
 
     return results
